@@ -1,0 +1,76 @@
+form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color:var(--primary-color);
+    width: 100px;
+}
+label{
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+input{
+    width: 100%;
+    border: none;
+    border-bottom:2px solid var(--secondary-color);
+    border-radius:  5px;
+    padding: 10px;
+    /* margin-left: 10px; */
+    background-color: var(--Accent-color1);
+}
+form button{
+    color: var(--primary-color);
+    background-color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px;
+    transition: background-color 0.4s ease;
+    border-radius: 10px;
+    border: 10px;
+}
+
+form button:hover{
+    background-color: var(--secondary-color);
+    color: var(--Accent-color1);
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.4s ease;
+}
+
+h2{
+    color:var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 4px;
+    text-align: center;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.verifyOTP{
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    text-align: start;
+    width: 100%;
+    justify-content: space-between;
+}
+.verifyOTP div{
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-around;
+}
+.verifyOTP p{
+    font-weight: bold;
+    font-size: 17px;
+    border-bottom: 2px solid;
+    cursor: pointer;   
+}
+.verifyOTP input{
+    border: none;
+    border-bottom:2px solid var(--secondary-color);
+    border-radius:  5px;
+    padding: 4px;
+    width: 100%;
+}
