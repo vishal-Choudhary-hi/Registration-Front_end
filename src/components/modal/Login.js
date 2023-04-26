@@ -1,13 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Modal from "react-modal";
+import axios from "axios";
+import { UserContext } from "../contexts/userContext";
 
 function Login({ modalIsOpen, setModalIsOpen }) {
+  const { setUser } = useContext(UserContext);
   const [formData, setFormData] = useState({
-    email: "",
+    emailId: "",
     password: "",
   });
+  const [error, setError] = useState();
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const res = await axios.post("http://localhost:8080/login", formData);
+    console.log(res);
+    if (res.data.toekn) {
+      localStorage.setItem("jwt", res.data.token);
+      const userId = JSON.parse(atob(res.data.token.split(".")[1])).id;
+      setUser(userId);
+      setModalIsOpen(false);
+      setFormData({
+        emailId: "",
+        password: "",
+      });
+      setError("");
+    } else {
+      setError(res.data.err);
+    }
   };
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,7 +35,7 @@ function Login({ modalIsOpen, setModalIsOpen }) {
     content: {
       top: "50%",
       left: "50%",
-      right: "auto",
+      right: "50%",
       bottom: "auto",
       marginRight: "-50%",
       transform: "translate(-50%, -50%)",
@@ -32,26 +51,25 @@ function Login({ modalIsOpen, setModalIsOpen }) {
       >
         <h2>Login</h2>
         <form onSubmit={handleSubmit}>
-          <label>
-            Email:
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleFormChange(e)}
-            />
-          </label>
-          <label>
-            Password:
-            <input
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleFormChange(e)}
-            />
-          </label>
-          <button type="submit">Submit</button>
+          <input
+            name="emailId"
+            type="email"
+            placeholder="Email"
+            value={formData.emailId}
+            onChange={(e) => handleFormChange(e)}
+          />
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => handleFormChange(e)}
+          />
+          <button type="submit" onClick={handleSubmit}>
+            Submit
+          </button>
         </form>
+        {error && <div className="error">{error}</div>}
       </Modal>
     </>
   );

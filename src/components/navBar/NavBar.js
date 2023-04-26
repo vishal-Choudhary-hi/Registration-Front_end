@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Modal from "react-modal";
+import { UserContext } from "../contexts/userContext";
 import SignUp from "../modal/Signup";
 import Login from "../modal/Login";
+import Logout from "../modal/Logout";
 import "./NavBar.css";
 import logo from "../../Images/logo.png";
+
 Modal.setAppElement("#root");
+
 function NavBar() {
+  const { user, setUser } = useContext(UserContext);
   const [signupModal, setSignupModal] = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);
   const [loginModal, setLoginModal] = useState(false);
-  let user = 1;
   return (
     <>
       <div className="navBar">
@@ -17,7 +22,7 @@ function NavBar() {
           <h2>Dev Site</h2>
         </div>
         <div className="menu">
-          {user ? (
+          {!user ? (
             <>
               <p onClick={() => setSignupModal(true)}>Signup</p>
               <p onClick={() => setLoginModal(true)}>Login</p>
@@ -25,7 +30,7 @@ function NavBar() {
           ) : (
             <>
               <p>Account</p>
-              <p>Logout</p>
+              <p onClick={() => setLogoutModal(true)}>Logout</p>
             </>
           )}
         </div>
@@ -33,6 +38,7 @@ function NavBar() {
       <div style={{ width: "50%", margin: "auto" }}>
         <SignUp modalIsOpen={signupModal} setModalIsOpen={setSignupModal} />
         <Login modalIsOpen={loginModal} setModalIsOpen={setLoginModal} />
+        <Logout modalIsOpen={logoutModal} setModalIsOpen={setLogoutModal} />
       </div>
     </>
   );

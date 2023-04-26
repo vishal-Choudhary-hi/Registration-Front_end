@@ -1,8 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import Modal from "react-modal";
+import { UserContext } from "../contexts/userContext";
+
 function SignUp({ modalIsOpen, setModalIsOpen }) {
+  const { setUser } = useContext(UserContext);
   const [OTP, setOTP] = useState(0);
+  const [error, setError] = useState({
+    name: false,
+    emailId: false,
+    password: false,
+    confirmPassword: false,
+    phoneNumber: false,
+    otp: false,
+  });
+  useEffect(() => console.log(error), [error]);
   const [formData, setFormData] = useState({
     name: "",
     emailId: "",
@@ -13,13 +25,38 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
   const [OTPs, setOTPs] = useState();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("hello");
+    let obj = error;
+    for (let i in formData) {
+      if (typeof formData[i] === "string" && formData[i].trim() === "") {
+        console.log("hi");
+        setError((prev) => ({ ...prev, [i]: true }));
+      }
+    }
+    if (OTP === 2) {
+      formData.optVerified = 1;
+    } else {
+      formData.optVerified = 0;
+      setError((prev) => ({ ...prev, otp: true }));
+    }
     const res = await axios.post("http://localhost:8080/signup", formData);
     if (res.status === 201) {
+      localStorage.setItem("jwt", res.data.token);
+      const userId = JSON.parse(atob(res.data.token.split(".")[1])).id;
+      setUser(userId);
       alert("Signup successfull");
     } else {
       console.log("Fail");
     }
+    setFormData({
+      name: "",
+      emailId: "",
+      password: "",
+      confirmPassword: "",
+      phoneNumber: "",
+    });
+    setOTP(0);
+    setOTPs();
+    setModalIsOpen(false);
   };
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,7 +65,7 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
     content: {
       top: "50%",
       left: "50%",
-      right: "auto",
+      right: "25%",
       bottom: "auto",
       marginRight: "-50%",
       transform: "translate(-50%, -50%)",
@@ -68,6 +105,7 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
               name="name"
               type="string"
               placeholder="Name"
+              style={{ borderColor: error.name === true ? "red" : "green" }}
               value={formData.name}
               onChange={(e) => handleFormChange(e)}
             />
