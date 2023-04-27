@@ -58,6 +58,7 @@ h2{
     text-align: start;
     width: 100%;
     justify-content: space-between;
+    border-bottom: 2px solid var(--primary-color);
 }
 .verifyOTP div{
     margin-top: 10px;
@@ -67,7 +68,6 @@ h2{
 .verifyOTP p{
     font-weight: bold;
     font-size: 17px;
-    border-bottom: 2px solid;
     cursor: pointer;   
 }
 .verifyOTP input{
@@ -112,4 +112,5 @@ h2{
     font-weight: bold;
     text-transform: capitalize;
     border-radius: 10px;
+    margin-bottom: 10px;
 }

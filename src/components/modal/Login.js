@@ -9,12 +9,38 @@ function Login({ modalIsOpen, setModalIsOpen }) {
     emailId: "",
     password: "",
   });
-  const [error, setError] = useState();
+  const [error, setError] = useState({
+    emailId: false,
+    password: false,
+    errorData: "",
+  });
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let boolError = false;
+    for (let i in formData) {
+      if (typeof formData[i] === "string" && formData[i].trim() === "") {
+        setError((prev) => ({ ...prev, [i]: true }));
+        boolError = true;
+      } else {
+        setError((prev) => ({ ...prev, [i]: false }));
+      }
+    }
+    if (!emailPattern.test(formData.emailId)) {
+      setError((prev) => ({ ...prev, emailId: true }));
+      boolError = true;
+    } else {
+      setError((prev) => ({ ...prev, emailId: false }));
+    }
+    if (boolError) {
+      setError((prev) => ({
+        ...prev,
+        errorData: "Error: Please check the red underlined field for errors.",
+      }));
+      return;
+    }
     const res = await axios.post("http://localhost:8080/login", formData);
-    console.log(res);
-    if (res.data.toekn) {
+    if (res.data.token) {
       localStorage.setItem("jwt", res.data.token);
       const userId = JSON.parse(atob(res.data.token.split(".")[1])).id;
       setUser(userId);
@@ -23,9 +49,13 @@ function Login({ modalIsOpen, setModalIsOpen }) {
         emailId: "",
         password: "",
       });
-      setError("");
+      setError({
+        emailId: false,
+        password: false,
+        errorData: "",
+      });
     } else {
-      setError(res.data.err);
+      setError((prev) => ({ ...prev, errorData: "Invalid credentials" }));
     }
   };
   const handleFormChange = (e) => {
@@ -55,6 +85,7 @@ function Login({ modalIsOpen, setModalIsOpen }) {
             name="emailId"
             type="email"
             placeholder="Email"
+            style={{ borderColor: error.emailId === true && "red" }}
             value={formData.emailId}
             onChange={(e) => handleFormChange(e)}
           />
@@ -62,6 +93,7 @@ function Login({ modalIsOpen, setModalIsOpen }) {
             name="password"
             type="password"
             placeholder="Password"
+            style={{ borderColor: error.password === true && "red" }}
             value={formData.password}
             onChange={(e) => handleFormChange(e)}
           />
@@ -69,7 +101,9 @@ function Login({ modalIsOpen, setModalIsOpen }) {
             Submit
           </button>
         </form>
-        {error && <div className="error">{error}</div>}
+        {error.errorData.length > 0 && (
+          <div className="error">{error.errorData}</div>
+        )}
       </Modal>
     </>
   );

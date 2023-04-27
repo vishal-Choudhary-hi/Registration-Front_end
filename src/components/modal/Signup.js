@@ -14,6 +14,7 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
     phoneNumber: false,
     otp: false,
   });
+  const [err, setErr] = useState(false);
   useEffect(() => console.log(error), [error]);
   const [formData, setFormData] = useState({
     name: "",
@@ -25,19 +26,49 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
   const [OTPs, setOTPs] = useState();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let obj = error;
+    let boolError = false;
+    setErr(false);
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phonePattern = /^\d{10}$/;
     for (let i in formData) {
       if (typeof formData[i] === "string" && formData[i].trim() === "") {
         console.log("hi");
         setError((prev) => ({ ...prev, [i]: true }));
+        boolError = true;
+      } else {
+        setError((prev) => ({ ...prev, [i]: false }));
       }
     }
     if (OTP === 2) {
       formData.optVerified = 1;
+      setError((prev) => ({ ...prev, otp: false }));
     } else {
       formData.optVerified = 0;
       setError((prev) => ({ ...prev, otp: true }));
+      boolError = true;
     }
+    if (!emailPattern.test(formData.emailId)) {
+      setError((prev) => ({ ...prev, emailId: true }));
+      boolError = true;
+    } else {
+      setError((prev) => ({ ...prev, emailId: false }));
+    }
+    if (!phonePattern.test(formData.phoneNumber)) {
+      setError((prev) => ({ ...prev, phoneNumber: true }));
+      boolError = true;
+    } else {
+      setError((prev) => ({ ...prev, phoneNumber: false }));
+    }
+    if (
+      formData.password.trim() != "" &&
+      formData.password === formData.confirmPassword
+    ) {
+      setError((prev) => ({ ...prev, password: false }));
+    } else {
+      setError((prev) => ({ ...prev, password: true }));
+      boolError = true;
+    }
+    if (boolError) return;
     const res = await axios.post("http://localhost:8080/signup", formData);
     if (res.status === 201) {
       localStorage.setItem("jwt", res.data.token);
@@ -53,6 +84,14 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
       password: "",
       confirmPassword: "",
       phoneNumber: "",
+    });
+    setError({
+      name: false,
+      emailId: false,
+      password: false,
+      confirmPassword: false,
+      phoneNumber: false,
+      otp: false,
     });
     setOTP(0);
     setOTPs();
@@ -73,6 +112,10 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
     },
   };
   const handleSendOTP = async () => {
+    if (formData.emailId.trim() === "") {
+      setOTP(5);
+      return;
+    }
     const res = await axios.post(`http://localhost:8080/sendOTP`, {
       email: formData.emailId,
     });
@@ -83,14 +126,29 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
     }
   };
   const verifyOTP = async () => {
+    if (OTPs.trim() === "") {
+      setOTP(4);
+      return;
+    }
     const res = await axios.post("http://localhost:8080/verifyOTP", {
       email: formData.emailId,
       OTP: OTPs,
     });
-    if (res.status === 201) {
+    if (res.data === "OTP Matched") {
       setOTP(2);
+    } else {
+      setOTP(3);
     }
   };
+
+  useEffect(() => {
+    for (let i in error) {
+      if (error[i] === true) {
+        setErr(true);
+        return;
+      }
+    }
+  }, [error]);
   return (
     <>
       <Modal
@@ -105,7 +163,7 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
               name="name"
               type="string"
               placeholder="Name"
-              style={{ borderColor: error.name === true ? "red" : "green" }}
+              style={{ borderColor: error.name === true && "red" }}
               value={formData.name}
               onChange={(e) => handleFormChange(e)}
             />
@@ -114,17 +172,23 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
             <input
               name="emailId"
               type="string"
+              disabled={OTP === 2 ? true : false}
+              style={{ borderColor: error.emailId === true && "red" }}
               placeholder="Email"
               value={formData.emailId}
               onChange={(e) => handleFormChange(e)}
             />
           </label>
-          <div className="verifyOTP">
+          <div
+            className="verifyOTP"
+            style={{ borderColor: error.otp && "red" }}
+          >
+            {OTP === 5 && <p style={{ color: "Red" }}>Please Enter Email</p>}
             {OTP === 0 && <p onClick={handleSendOTP}>Send OTP</p>}
-            {OTP === 1 && (
+            {(OTP === 1 || OTP >= 3) && (
               <>
                 <input
-                  type="password"
+                  type=""
                   placeholder="Entry OTP"
                   onChange={(e) => setOTPs(e.target.value)}
                 />
@@ -135,12 +199,15 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
               </>
             )}
             {OTP === 2 && <p style={{ color: "Green" }}>OTP Accepted</p>}
+            {OTP === 3 && <p style={{ color: "Red" }}>OTP not matched</p>}
+            {OTP === 4 && <p style={{ color: "Red" }}>Please Enter OTP</p>}
           </div>
           <label>
             <input
               name="password"
               type="password"
               placeholder="Password"
+              style={{ borderColor: error.password === true && "red" }}
               value={formData.password}
               onChange={(e) => handleFormChange(e)}
             />
@@ -150,6 +217,7 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
               name="confirmPassword"
               type="password"
               placeholder="Comfirm Password"
+              style={{ borderColor: error.password === true && "red" }}
               value={formData.confirmPassword}
               onChange={(e) => handleFormChange(e)}
             />
@@ -159,10 +227,18 @@ function SignUp({ modalIsOpen, setModalIsOpen }) {
               name="phoneNumber"
               type="string"
               placeholder="Phone Number"
+              style={{
+                borderColor: error.phoneNumber === true && "red",
+              }}
               value={formData.phoneNumber}
               onChange={(e) => handleFormChange(e)}
             />
           </label>
+          {err && (
+            <div className="error">
+              Error: Please check the red underlined field for errors.
+            </div>
+          )}
           <button type="submit">Submit</button>
         </form>
       </Modal>
